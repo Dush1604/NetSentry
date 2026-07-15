@@ -216,3 +216,36 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ---- Node / React dashboard ----
+node_modules/
+dashboard/build/
+dashboard/.env
+npm-debug.log*
+yarn-error.log*
+
+# ---- Arduino / PlatformIO firmware ----
+firmware/**/.pio/
+firmware/**/build/
+*.bin
+*.elf
+
+# ---- Docker ----
+*.env.production
+docker-data/
+
+# ---- Secrets (belt and suspenders on top of .env above) ----
+*.pem
+*.key
+*.crt
+secrets.yaml
+credentials.json
+
+# ---- OS-generated junk ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Editor ----
+.vscode/
+.idea/
