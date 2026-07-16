@@ -249,3 +249,6 @@ desktop.ini
 # ---- Editor ----
 .vscode/
 .idea/
+
+# Firmware secrets
+firmware/**/config.h
