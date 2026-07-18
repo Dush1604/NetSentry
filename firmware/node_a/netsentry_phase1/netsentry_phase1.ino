@@ -14,11 +14,12 @@
 */
 
 #include "WiFi.h"
-#include <ESP32Ping.h>
+#include <ESPping.h>
 #include "esp_camera.h"
 
 // ---- WiFi credentials ----
 // ---- WiFi credentials (see config.h.example) ----
+
 #include "config.h"
 
 // ---- Camera pin definitions for Freenove ESP32-WROVER CAM ----
@@ -122,6 +123,7 @@ void initCamera() {
     config.frame_size = FRAMESIZE_SVGA;   // 800x600, good balance for Phase 1
     config.jpeg_quality = 12;             // lower number = higher quality
     config.fb_count = 2;
+    config.grab_mode = CAMERA_GRAB_LATEST;
   } else {
     config.frame_size = FRAMESIZE_QVGA;   // fallback if PSRAM isn't detected
     config.jpeg_quality = 15;
