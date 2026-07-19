@@ -1,10 +1,15 @@
 // config.h.example
 // Copy this file to config.h and fill in your real credentials.
 // config.h is gitignored and will never be committed.
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef NETSENTRY_CONFIG_H
+#define NETSENTRY_CONFIG_H
 
+// Wifi credentials
 #define WIFI_SSID "your_wifi_name_here"
 #define WIFI_PASS "your_wifi_password_here"
+
+// MQTT broker settings
+#define MQTT_BROKER_IP "192.168.1.100"   // your PC's IP from ipconfig
+#define MQTT_BROKER_PORT 1883
 
 #endif
