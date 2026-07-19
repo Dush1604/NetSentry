@@ -4,6 +4,7 @@
 #include "network_probe.h"
 #include "camera_capture.h"
 #include "serial_utils.h"
+#include "mqtt_publish.h"
 
 void setup() {
   Serial.begin(115200);
@@ -19,6 +20,9 @@ void setup() {
   Serial.print("Connected. IP: "); Serial.println(WiFi.localIP());
 
   initCamera();
+
+  initMqtt();
+  xTaskCreatePinnedToCore(mqttPublishTask, "MqttPublish", 4096, NULL, 1, NULL, 0);
 
   xTaskCreatePinnedToCore(networkProbeTask, "NetworkProbe", 4096, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(cameraCaptureTask, "CameraCaptureTest", 8192, NULL, 1, NULL, 1);
