@@ -1,0 +1,16 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: netsentry-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: netsentry
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: netsentry
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+
+volumes:
+  timescale_data:
