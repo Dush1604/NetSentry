@@ -5,5 +5,6 @@
 
 void initMqtt();
 void mqttPublishTask(void* parameter);
+void publishRaw(const String& topic, const String& payload);
 
 #endif

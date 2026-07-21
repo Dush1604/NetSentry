@@ -25,6 +25,7 @@ static void reconnectMqtt() {
 }
 
 void initMqtt() {
+  mqttClient.setBufferSize(1024);  // set buffer size to 1KB
   mqttClient.setServer(MQTT_BROKER_IP, MQTT_BROKER_PORT);
 }
 
@@ -45,5 +46,14 @@ void mqttPublishTask(void* parameter) {
     safePrintln("[MQTT] Publish " + String(sent ? "OK" : "FAILED") + " -> " + topic);
 
     vTaskDelay(pdMS_TO_TICKS(10000));  // publish every 10s
+  }
+}
+
+void publishRaw(const String& topic, const String& payload) {
+  if (mqttClient.connected()) {
+    bool sent = mqttClient.publish(topic.c_str(), payload.c_str());
+    safePrintln("[MQTT] Publish " + String(sent ? "OK" : "FAILED") + " -> " + topic);
+  } else {
+    safePrintln("[MQTT] Skipped publish (not connected) -> " + topic);
   }
 }

@@ -5,6 +5,7 @@
 #include "camera_capture.h"
 #include "serial_utils.h"
 #include "mqtt_publish.h"
+#include "arp_scanner.h"
 
 void setup() {
   Serial.begin(115200);
@@ -23,9 +24,9 @@ void setup() {
 
   initMqtt();
   xTaskCreatePinnedToCore(mqttPublishTask, "MqttPublish", 4096, NULL, 1, NULL, 0);
-
   xTaskCreatePinnedToCore(networkProbeTask, "NetworkProbe", 4096, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(cameraCaptureTask, "CameraCaptureTest", 8192, NULL, 1, NULL, 1);
+  xTaskCreatePinnedToCore(arpScannerTask, "ArpScanner", 8192, NULL, 1, NULL, 0);
 }
 
 void loop() {
