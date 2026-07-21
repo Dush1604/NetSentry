@@ -5,6 +5,10 @@ import threading
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from app.auth import hash_password, verify_password, create_access_token, decode_access_token
+
 import psycopg2
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
@@ -81,6 +85,44 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="NetSentry API", lifespan=lifespan)
 
+@app.post("/auth/register")
+def register(email: str, password: str):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+    if cur.fetchone():
+        cur.close()
+        conn.close()
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed = hash_password(password)
+    cur.execute(
+        "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
+        (email, hashed),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"message": "User created"}
+
+
+@app.post("/auth/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT password_hash FROM users WHERE email = %s", (form_data.username,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if not row or not verify_password(form_data.password, row[0]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+
+    token = create_access_token(data={"sub": form_data.username})
+    return {"access_token": token, "token_type": "bearer"}
 
 @app.get("/")
 def root():
@@ -88,7 +130,7 @@ def root():
 
 
 @app.get("/metrics/latest")
-def latest_metrics(limit: int = 10):
+def latest_metrics(limit: int = 10, current_user: dict = Depends(decode_access_token)):
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute(

@@ -30,4 +30,13 @@ ON CONFLICT (device_uuid) DO NOTHING;
 INSERT INTO devices (device_uuid, name, location)
 VALUES ('node_b', 'Node B', 'basement')
 ON CONFLICT (device_uuid) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
 EOF
