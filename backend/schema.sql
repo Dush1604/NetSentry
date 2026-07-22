@@ -39,4 +39,27 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS known_devices (
+    mac_address TEXT PRIMARY KEY,
+    label TEXT,
+    trusted_since TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    id SERIAL PRIMARY KEY,
+    time TIMESTAMPTZ NOT NULL DEFAULT now(),
+    device_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    details JSONB
+);
+
+
+CREATE TABLE IF NOT EXISTS images (
+    id SERIAL PRIMARY KEY,
+    event_id INTEGER REFERENCES events(id),
+    device_id TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    captured_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 EOF

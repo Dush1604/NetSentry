@@ -252,3 +252,5 @@ desktop.ini
 
 # Firmware secrets
 firmware/**/config.h
+firmware/.pio/
+backend/storage/
