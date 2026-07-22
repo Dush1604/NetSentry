@@ -6,10 +6,12 @@
 #include "serial_utils.h"
 #include "mqtt_publish.h"
 #include "arp_scanner.h"
+#include "snapshot_upload.h"
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
+  initNetworkMutex();
   initSerialMutex();
 
   Serial.print("Node ID: "); Serial.println(NODE_ID);

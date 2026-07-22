@@ -2,6 +2,9 @@
 #include "camera_capture.h"
 #include "esp_camera.h"
 #include "serial_utils.h"
+#include "snapshot_upload.h"
+
+#define MOTION_THRESHOLD_PERCENT 25.0 // frame-size change % that counts as "motion" — tune based on real-world testing
 
 // Camera pin definitions for Freenove ESP32-WROVER CAM — fixed by hardware, do not change
 #define PWDN_GPIO_NUM     -1
@@ -64,18 +67,33 @@ void initCamera() {
 }
 
 void cameraCaptureTask(void* parameter) {
+  size_t previousLen = 0;
+  bool firstFrame = true;
+
   for (;;) {
     camera_fb_t* fb = esp_camera_fb_get();
 
     if (!fb) {
-      safePrintln("[Camera] Capture FAILED");
+      safePrintln("[Camera] Capture FAILED | Free heap: " + String(ESP.getFreeHeap()));
     } else {
-      String line = "[Camera] Captured frame: " + String(fb->len) + " bytes, "
-                    + String(fb->width) + "x" + String(fb->height);
-      safePrintln(line);
+      safePrintln("[Camera] Captured frame: " + String(fb->len) + " bytes, " +
+                  String(fb->width) + "x" + String(fb->height));
+
+      if (!firstFrame && previousLen > 0) {
+        long diff = (long)fb->len - (long)previousLen;
+        float percentChange = abs(diff) * 100.0 / previousLen;
+
+        if (percentChange > MOTION_THRESHOLD_PERCENT) {
+          safePrintln("[Motion] " + String(percentChange, 1) + "% frame-size change — uploading snapshot");
+          uploadSnapshot(fb);
+        }
+      }
+
+      previousLen = fb->len;
+      firstFrame = false;
       esp_camera_fb_return(fb);
     }
 
-    vTaskDelay(pdMS_TO_TICKS(30000));
+    vTaskDelay(pdMS_TO_TICKS(10000));  // check every 10s
   }
 }

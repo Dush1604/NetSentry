@@ -31,19 +31,23 @@ void initMqtt() {
 
 void mqttPublishTask(void* parameter) {
   for (;;) {
-    if (!mqttClient.connected()) {
-      reconnectMqtt();
+    if (xSemaphoreTake(networkMutex, pdMS_TO_TICKS(5000)) == pdTRUE) {
+      if (!mqttClient.connected()) {
+        reconnectMqtt();
+      }
+      mqttClient.loop();  // must be called regularly to keep connection alive
+
+      int rssi = WiFi.RSSI();
+      String topic = "sentinel/" + String(NODE_ID) + "/telemetry";
+      String payload = "{\"node_id\":\"" + String(NODE_ID) +
+                        "\",\"rssi\":" + String(rssi) +
+                        ",\"heap_free\":" + String(ESP.getFreeHeap()) + "}";
+
+      bool sent = mqttClient.publish(topic.c_str(), payload.c_str());
+      safePrintln("[MQTT] Publish " + String(sent ? "OK" : "FAILED") + " -> " + topic);
+
+      xSemaphoreGive(networkMutex);
     }
-    mqttClient.loop();  // must be called regularly to keep connection alive
-
-    int rssi = WiFi.RSSI();
-    String topic = "sentinel/" + String(NODE_ID) + "/telemetry";
-    String payload = "{\"node_id\":\"" + String(NODE_ID) +
-                      "\",\"rssi\":" + String(rssi) +
-                      ",\"heap_free\":" + String(ESP.getFreeHeap()) + "}";
-
-    bool sent = mqttClient.publish(topic.c_str(), payload.c_str());
-    safePrintln("[MQTT] Publish " + String(sent ? "OK" : "FAILED") + " -> " + topic);
 
     vTaskDelay(pdMS_TO_TICKS(10000));  // publish every 10s
   }

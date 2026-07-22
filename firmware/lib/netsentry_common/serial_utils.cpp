@@ -13,3 +13,8 @@ void safePrintln(const String& msg) {
     xSemaphoreGive(serialMutex);
   }
 }
+
+SemaphoreHandle_t networkMutex;
+void initNetworkMutex() {
+  networkMutex = xSemaphoreCreateMutex();
+}
