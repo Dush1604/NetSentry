@@ -15,6 +15,8 @@ void safePrintln(const String& msg) {
 }
 
 SemaphoreHandle_t networkMutex;
+
 void initNetworkMutex() {
-  networkMutex = xSemaphoreCreateMutex();
+  networkMutex = xSemaphoreCreateBinary();
+  xSemaphoreGive(networkMutex);
 }

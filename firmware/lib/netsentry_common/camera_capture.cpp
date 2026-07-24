@@ -3,6 +3,7 @@
 #include "esp_camera.h"
 #include "serial_utils.h"
 #include "snapshot_upload.h"
+#include "mqtt_publish.h"
 
 #define MOTION_THRESHOLD_PERCENT 25.0 // frame-size change % that counts as "motion" — tune based on real-world testing
 
@@ -71,6 +72,16 @@ void cameraCaptureTask(void* parameter) {
   bool firstFrame = true;
 
   for (;;) {
+    int requestedEventId;
+    if (xQueueReceive(snapshotRequestQueue, &requestedEventId, 0) == pdTRUE) {
+      safePrintln("[Camera] Remote snapshot requested for event_id=" + String(requestedEventId));
+      camera_fb_t* remoteFb = esp_camera_fb_get();
+      if (remoteFb) {
+        uploadSnapshot(remoteFb, requestedEventId);
+        esp_camera_fb_return(remoteFb);
+      }
+    }
+
     camera_fb_t* fb = esp_camera_fb_get();
 
     if (!fb) {

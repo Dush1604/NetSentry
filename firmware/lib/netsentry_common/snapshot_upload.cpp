@@ -5,7 +5,7 @@
 #include "config.h"
 #include "serial_utils.h"
 
-bool uploadSnapshot(camera_fb_t* fb) {
+bool uploadSnapshot(camera_fb_t* fb, int eventId) {
   if (!fb) return false;
 
   if (xSemaphoreTake(networkMutex, pdMS_TO_TICKS(5000)) != pdTRUE) {
@@ -16,6 +16,9 @@ bool uploadSnapshot(camera_fb_t* fb) {
   HTTPClient http;
   String url = "http://" + String(BACKEND_HOST) + ":" + String(BACKEND_PORT) +
                "/images/upload?device_id=" + String(NODE_ID);
+  if (eventId >= 0) {
+    url += "&event_id=" + String(eventId);
+  }
 
   // Manually building a multipart/form-data body — HTTPClient doesn't have
   // a built-in helper for this, so we construct the exact byte layout

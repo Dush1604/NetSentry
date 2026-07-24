@@ -64,7 +64,7 @@ def handle_telemetry(node_id, payload):
     print(f"[DB] Inserted reading for {payload.get('node_id')}")
 
 
-def handle_device_list(node_id, devices):
+def handle_device_list(client, node_id, devices):
     conn = get_db_connection()
     cur = conn.cursor()
 
@@ -94,9 +94,15 @@ def handle_device_list(node_id, devices):
             "INSERT INTO events (device_id, event_type, details) VALUES (%s, %s, %s)",
             (node_id, "unrecognized_device", details),
         )
+        event_id = cur.fetchone()[0]
+        conn.commit()
         print(f"[ALERT] Unrecognized device {mac} ({ip}) seen from {node_id}")
 
-    conn.commit()
+        command_topic = f"sentinel/{node_id}/command"
+        command_payload = json.dumps({"action": "capture_snapshot", "event_id": event_id})
+        client.publish(command_topic, command_payload)
+        print(f"[MQTT] Sent capture_snapshot command to {command_topic}")
+
     cur.close()
     conn.close()
 
@@ -111,7 +117,7 @@ def on_message(client, userdata, msg):
         if message_type == "telemetry":
             handle_telemetry(node_id, payload)
         elif message_type == "devices":
-            handle_device_list(node_id, payload)
+            handle_device_list(client, node_id, payload)
 
     except Exception as e:
         print(f"[ERROR] Failed to process message: {e}")
